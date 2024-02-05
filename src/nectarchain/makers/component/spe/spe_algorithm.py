@@ -497,6 +497,7 @@ class SPEnominalalgorithm(SPEalgorithm):
         for i in range(len(pixels_id)):
             values = dico[i].get(f"values_{i}", None)
             errors = dico[i].get(f"errors_{i}", None)
+            status = dico[i].get(f"status_{i}", None)
             if not ((values is None) or (errors is None)):
                 index = np.argmax(self._results.pixels_id == pixels_id[i])
                 if len(values) != len(chi2_sig.parameters):
@@ -513,7 +514,10 @@ class SPEnominalalgorithm(SPEalgorithm):
                         self._results.high_gain[index][0] = values[j]
                         self._results.high_gain[index][1] = errors[j]
                         self._results.high_gain[index][2] = errors[j]
-                self._results.is_valid[index] = True
+                if status['is_valid'] and status['has_valid_parameters'] and not status['has_parameters_at_limit']:
+                    self._results.is_valid[index] = True
+                else:
+                    self._results.is_valid[index] = False
                 self._results.likelihood[index] = __class__.__fit_array[i].fcn(
                     __class__.__fit_array[i].values
                 )
@@ -680,8 +684,11 @@ class SPEnominalalgorithm(SPEalgorithm):
         __class__.__fit_array[i].hesse()
         _values = np.array([params.value for params in __class__.__fit_array[i].params])
         _errors = np.array([params.error for params in __class__.__fit_array[i].params])
+        _status = {'is_valid': __class__.__fit_array[i].fmin.is_valid,
+                   'has_valid_parameters': __class__.__fit_array[i].fmin.has_valid_parameters,
+                   'has_parameters_at_limit' : __class__.__fit_array[i].fmin.has_parameters_at_limit}
         log.info("Finished")
-        return {f"values_{i}": _values, f"errors_{i}": _errors}
+        return {f"values_{i}": _values, f"errors_{i}": _errors, f"status_{i}" : _status}
 
     def run(
         self,
