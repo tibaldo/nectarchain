@@ -830,7 +830,7 @@ class SPEnominalalgorithm(SPEalgorithm):
         plot.setRange(
             xRange=[
                 pedestal - 6 * pedestalWidth,
-                np.quantile(charge.data[~charge.mask], 0.84),
+                np.quantile(charge.data[~charge.mask], 0.99),
             ]
         )
         # ax.legend(fontsize=18)
